@@ -10,7 +10,8 @@
      * options
      */
     var _opts = $.extend({}, {
-      dataUrl: null
+      dataUrl: null,
+      dataMap: null
     }, opts);
 
     // check _opts
@@ -21,6 +22,11 @@
           case 'dataUrl':
             if (!val) {
               throw new Error('Please specify a `dataUrl`');
+            }
+            break;
+          case 'dataMap':
+            if (!val) {
+              throw new Error('Please configure the `dataMap`');
             }
             break;
           default:
@@ -66,6 +72,31 @@
      * @api @private
      */
     function getData(dataUrl) {
+      function mapData(videos) {
+        var newVideos = [];
+        $.each(videos, function (i, video) {
+          var newVideo = {};
+          for (var key in _opts.dataMap) {
+            if (_opts.dataMap.hasOwnProperty(key)) {
+              var list = _opts.dataMap[key].split('.');
+              var ref = null;
+              var numRe = /\d/g;
+              for (var i = 0; i < list.length; i++) {
+                var k = numRe.test(list[i]) ? parseInt(list[i]) : list[i];
+                if (!ref) {
+                  ref = video[k];
+                } else {
+                  ref = ref[k];
+                }
+              }
+              newVideo[key] = typeof ref !== 'undefined' ? ref : null;
+            }
+          }
+          newVideos.push(newVideo);
+        });
+        return newVideos;
+      } // end-mapData
+
       $.ajax({
         url: dataUrl,
         method: 'GET',
@@ -73,7 +104,7 @@
       })
       .done(function (res) {
         console.log('Success :', 'Data fetched successfully');
-        _self.data = JSON.parse(res);
+        _self.data = mapData(JSON.parse(res).data);
         console.log('Success :', 'Data parsed and stored.');
       })
       .fail(function (err) {
@@ -96,7 +127,7 @@
    */
   var $elements = {
     /**
-     * video element
+     * element
      *
      * @param {obj} videoData
      * @return {jQuery} videoElem
@@ -132,20 +163,20 @@
       }).append($('<strong>').html(data.userName));
 
       /**
-       * video title
+       * name
        */
-      var $videoTitle = $('<a>', {
-        href: data.videoUrl,
+      var $name = $('<a>', {
+        href: data.url,
         target: '_blank'
       }).append($('<h3>', {
-          class: 'title text-success'
-        }).html(data.videoTitle));
+          class: 'name text-success'
+        }).html(data.name));
 
       /**
-       * video desc
+       * desc
        */
-      var $videoDesc = $('<p>').html(data.videoDesc);
-      function videoDescBtn(name) {
+      var $desc = $('<p>').html(data.desc);
+      function descBtn(name) {
         return $('<a>', {
           class: 'show-' + name + ' btn btn-primary btn-xs',
           href: '#'
@@ -153,24 +184,24 @@
       }
 
       /**
-       * video detail item
+       * detail item
        */
-      function videoDetailItem(type) {
+      function detailItem(type) {
         var color, html, icon;
         switch (type) {
           case 'views':
             color = 'success';
-            html = data.videoViews;
+            html = data.plays;
             icon = 'eye-open';
             break;
           case 'likes':
             color = 'danger';
-            html = data.videoLikes;
+            html = data.likes;
             icon = 'heart';
             break;
           case 'comments':
             color = 'primary';
-            html = data.videoComments;
+            html = data.comments;
             icon = 'comment';
             break;
           default:
@@ -186,7 +217,7 @@
       }
 
       /**
-       * video infos
+       * infos
        */
       var $videoInfos = $('<div>', {
         class: 'video-infos'
@@ -195,31 +226,31 @@
         .append($('<div>', {
           class: 'user-name'
         }).append($userName))
-        // video title
+        // title
         .append($('<div>', {
-          class: 'video-title'
-        }).append($videoTitle))
-        // video desc
+          class: 'video-name'
+        }).append($name))
+        // desc
         .append($('<div>', {
           class: 'video-desc'
         })
-          // video desc text
-          .append($videoDesc)
-          // video desc btns
-          .append(videoDescBtn('more'))
-          .append(videoDescBtn('less')))
-        // video details
+          // desc text
+          .append($desc)
+          // desc btns
+          .append(descBtn('more'))
+          .append(descBtn('less')))
+        // details
         .append($('<div>', {
           class: 'video-details'
         })
-          // video details list
+          // details list
           .append($('<ul>', {
             class: 'list-unstyled'
           })
-            // video details list items
-            .append(videoDetailItem('views'))
-            .append(videoDetailItem('likes'))
-            .append(videoDetailItem('comments'))));
+            // details list items
+            .append(detailItem('views'))
+            .append(detailItem('likes'))
+            .append(detailItem('comments'))));
 
       // return the whole video elem
       return $con
@@ -231,22 +262,36 @@
   // init
   $(document).ready(function () {
     var videoFeed = new VideoFeed({
-      dataUrl: '/data.json'
+      // url where to grap the data
+      dataUrl: '/data.json',
+      // options to map the data
+      // keep only what's needed.
+      // the value is a string of nested
+      // props and indexs separated by dots.
+      dataMap: {
+        name: 'name',
+        url: 'link',
+        desc: 'description',
+        plays: 'stats.plays',
+        likes: 'metadata.connections.likes.total',
+        comments: 'metadata.connections.comments.total',
+        userName: 'user.name',
+        userUrl: 'user.link',
+        userImgUrl: 'user.pictures.sizes.1.link'
+      }
     });
-
-    window.videoFeed = videoFeed;
 
     videoFeed.render([
       $elements.video({
         userName: 'username',
         userUrl: 'userurl',
         userImgUrl: 'userimgurl',
-        videoTitle: 'videotitle',
-        videoUrl: 'videourl',
-        videoDesc: 'videodesc',
-        videoViews: '1000',
-        videoLikes: '233',
-        videoComments: '23'
+        name: 'title',
+        url: 'url',
+        desc: 'desc',
+        plays: '1000',
+        likes: '233',
+        comments: '23'
       })
     ], $('.videos'));
   });

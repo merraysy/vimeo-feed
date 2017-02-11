@@ -38,7 +38,7 @@ a:focus:not(.btn) {
 .video .user-img {
   display: table-cell;
   vertical-align: top;
-  width: 50px;
+  width: 75px;
 }
 
 /**
@@ -58,12 +58,12 @@ a:focus:not(.btn) {
 }
 
 /**
- * title
+ * name
  */
-.video .video-infos .video-title {
+.video .video-infos .video-name {
   margin-bottom: .5em;
 }
-.video .video-infos .video-title .title {
+.video .video-infos .video-name .name {
   margin: 0;
   display: inline-block;
 }
