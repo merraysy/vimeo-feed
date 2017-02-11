@@ -3,3 +3,129 @@
  * ==  @base  ==
  * ====================================================================
  */
+/**
+ * links
+ */
+a:not(.btn),
+a:link:not(.btn),
+a:hover:not(.btn),
+a:visited:not(.btn),
+a:focus:not(.btn) {
+  text-decoration: none;
+  color: inherit;
+}
+
+/**
+ * grid
+ */
+.container {
+  width: 480px;
+}
+
+/**
+ * ====================================================================
+ * ==  @video  ==
+ * ====================================================================
+ */
+.video {
+  display: table;
+  width: 100%;
+}
+
+/**
+ * user img
+ */
+.video .user-img {
+  display: table-cell;
+  vertical-align: top;
+}
+
+/**
+ * infos
+ */
+.video .video-infos {
+  display: table-cell;
+  vertical-align: top;
+  padding-left: 1em;
+}
+
+/**
+ * user name
+ */
+.video .video-infos .user-name {
+  margin-bottom: .5em;
+}
+
+/**
+ * title
+ */
+.video .video-infos .video-title {
+  margin-bottom: .5em;
+}
+.video .video-infos .video-title .title {
+  margin: 0;
+  display: inline-block;
+}
+
+/**
+ * desc
+ */
+.video .video-infos .video-desc {
+  height: 90px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: .5em;
+}
+.video .video-infos .video-desc.more {
+  height: auto;
+  overflow: inherit;
+}
+.video .video-infos .video-desc.more::before,
+.video .video-infos .video-desc.more .show-more {
+  display: none;
+}
+.video .video-infos .video-desc.more .show-less {
+  display: block;
+}
+.video .video-infos .video-desc::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 50px;
+  left: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent, #fff);
+}
+.video .video-infos .video-desc .btn {
+  position: absolute;
+  left: 50%;
+  bottom: .25em;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  opacity: .3;
+}
+.video .video-infos .video-desc .btn:hover {
+  opacity: 1;
+}
+.video .video-infos .video-desc .show-less {
+  display: none;
+}
+
+/**
+ * details
+ */
+.video .video-infos .video-details {
+
+}
+.video .video-infos .video-details ul li {
+  display: inline;
+  margin-right: .5em;
+}
+.video .video-infos .video-details ul li:last-child {
+  margin-right: 0;
+}
+.video .video-infos .video-details ul li .icon {
+  margin-right: .5rem;
+  font-size: .8em;
+}

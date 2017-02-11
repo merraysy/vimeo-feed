@@ -95,9 +95,6 @@
    * @type {Object}
    */
   var $elements = {
-    title: function () {
-      return $('<h1>').html('Video Feed!');
-    }
   }; // end-$elements
 
   // init
@@ -107,8 +104,5 @@
     });
 
     window.videoFeed = videoFeed;
-
-    // test
-    videoFeed.render([$elements.title()], $('.container'));
   });
 })(jQuery, _);
