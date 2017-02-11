@@ -65,7 +65,7 @@
     var _filterOpts = {
       resultsPerPage: 10,
       moreThanTenLikes: false,
-      keywords: ''
+      searchInDescText: ''
     };
     var _currentPage = null;
     var _pagination = {
@@ -73,6 +73,9 @@
       hasNext: false,
       hasPrev: false
     };
+    var _shouldRefreshOnOptsChange = [
+
+    ];
 
     /**
      * public props
@@ -80,21 +83,13 @@
     _self.ready = false;
 
     /**
-     * set `resultsPerPage` option
+     * set pagination data
      *
-     * @param {int} resultsPerPage
+     * @param {arr} filteredData
+     * @param {str} paginateDirection
      * @return {void}
-     * @api @public
+     * @api @private
      */
-    function setResultsPerPage(number) {
-      var num = parseInt(number);
-      if (!Number.isNaN(num)) {
-        _opts.resultsPerPage = num;
-      } else {
-        throw new Error('`resultsPerPage` must be an integer.');
-      }
-    } // end-setResultsPerPage
-
     function setPagination(data, dir) {
       var rpp = _filterOpts.resultsPerPage;
       var index = _pagination.index;
@@ -117,6 +112,13 @@
       _pagination.index = currentIndex;
     } // end-setPagination
 
+    /**
+     * set filter options
+     *
+     * @param {obj} newOptions
+     * @return {}
+     * @api @public
+     */
     function setFilterOpts(opts) {
       _filterOpts = _.assign({}, _filterOpts, opts);
     } // end-setFilterOpts
@@ -131,8 +133,13 @@
     function filterData() {
       var newData = _data.concat();
       if (_filterOpts.moreThanTenLikes) {
-        newData = _.filter(data, function (obj) {
-          return parseInt(obj.likes) > 10;
+        newData = _.filter(newData, function (obj) {
+          return parseInt(obj.userLikes) > 10;
+        });
+      }
+      if (_filterOpts.searchInDescText.length !== 0) {
+        newData = _.filter(newData, function (obj) {
+          return obj.desc && obj.desc.search(_filterOpts.searchInDescText) !== -1;
         });
       }
       return newData;
@@ -154,7 +161,7 @@
       $con.html('');
       // render
       if (_currentPage.length > 0) {
-        $.each(_currentPage, function (i, videoData) {
+        _.each(_currentPage, function (videoData) {
           $con.append(_opts.templateCreator(videoData));
         });
         // render pagination btns
@@ -188,7 +195,7 @@
     function getData(dataUrl) {
       function mapData(videos) {
         var newVideos = [];
-        $.each(videos, function (i, video) {
+        _.each(videos, function (video) {
           var newVideo = {};
           for (var key in _opts.dataMap) {
             if (_opts.dataMap.hasOwnProperty(key)) {
@@ -233,7 +240,7 @@
 
     // expose methods
     this.render = render;
-    this.setResultsPerPage = render;
+    this.setFilterOpts = setFilterOpts;
 
     // init
     getData(opts.dataUrl);
@@ -413,7 +420,47 @@
 
     // app's code
     function init() {
+      // first render
       videoFeed.render();
+
+      /**
+       * filter events listeners
+       */
+      // above ten likes
+      $('input[name="above-ten-likes"]').on('change', function (e) {
+        // set mttl option
+        videoFeed.setFilterOpts({
+          moreThanTenLikes: e.target.checked
+        });
+        // re render
+        videoFeed.render();
+      });
+
+      // search in desc
+      $('input[name="search-in-desc"]').on('input', function (e) {
+        // set mttl option
+        videoFeed.setFilterOpts({
+          searchInDescText: e.target.value
+        });
+        // re render
+        videoFeed.render();
+      });
+
+      // results per page
+      $('.results-per-page').on('click', function (e) {
+        e.preventDefault();
+        var $btn = $(e.target);
+        // set active state class
+        $btn
+          .addClass('active')
+          .siblings().removeClass('active');
+        // set rpp option
+        videoFeed.setFilterOpts({
+          resultsPerPage: parseInt(e.target.innerHTML)
+        });
+        // re render
+        videoFeed.render();
+      });
     };
 
     // wait for ready state
