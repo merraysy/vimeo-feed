@@ -2,8 +2,9 @@
   'use strict';
 
   /**
-   * [VideoFeed the video feed constructor function]
-   * @param {[obj]} opts [init options]
+   * the video feed constructor function
+   *
+   * @param {obj} options
    */
   function VideoFeed(opts) {
     /**
@@ -73,9 +74,6 @@
       hasNext: false,
       hasPrev: false
     };
-    var _shouldRefreshOnOptsChange = [
-
-    ];
 
     /**
      * public props
@@ -116,7 +114,7 @@
      * set filter options
      *
      * @param {obj} newOptions
-     * @return {}
+     * @return {void}
      * @api @public
      */
     function setFilterOpts(opts) {
@@ -149,7 +147,7 @@
      * render the stored data
      * based on the given options
      *
-     * @param {str} paginationDirection
+     * @param {str} paginateDirection
      * @return {void}
      * @api @public
      */
@@ -232,7 +230,7 @@
       });
     }; // end-getData
 
-    // expose methods
+    // expose public methods
     this.render = render;
     this.setFilterOpts = setFilterOpts;
 
@@ -247,10 +245,10 @@
    */
   var $templates = {
     /**
-     * element
+     * video element
      *
      * @param {obj} videoData
-     * @return {jQuery} videoElem
+     * @return {jQuery}
      */
     video: function (data) {
       /**
@@ -328,7 +326,7 @@
           case 'likes':
             color = 'danger';
             html = data.likes;
-            icon = 'heart';
+            icon = 'thumbs-up';
             break;
           case 'comments':
             color = 'primary';
@@ -383,6 +381,14 @@
       // return the whole video elem
       return $con.append($userImg, $videoInfos);
     },
+
+    /**
+     * pagination button
+     *
+     * @param {str} paginateDirection
+     * @param {func} clickAction
+     * @return {jQuery}
+     */
     paginationBtn: function (dir, clickAction) {
       return $('<a>', {
         class: 'pagination-btn btn btn-default btn-sm pull-' + (dir === 'next' ? 'right' : 'left')
