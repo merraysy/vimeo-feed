@@ -9,12 +9,12 @@
     /**
      * options
      */
-    var _opts = $.extend({}, {
+    var _opts = _.assign({}, {
       dataUrl: null,
       dataMap: null,
       templateCreator: null,
-      containerClass: null,
-      resultsPerPage: 10
+      paginationBtnCreator: null,
+      containerClass: null
     }, opts);
 
     // check _opts
@@ -37,6 +37,11 @@
               throw new Error('Please provide a `templateCreator`');
             }
             break;
+          case 'paginationBtnCreator':
+            if (!val) {
+              throw new Error('Please provide a `paginationBtnCreator`');
+            }
+            break;
           case 'containerClass':
             if (!val) {
               throw new Error('Please specify a `containerClass`');
@@ -56,16 +61,23 @@
      * private props
      */
     var _self = this;
+    var _data = null;
+    var _filterOpts = {
+      resultsPerPage: 10,
+      moreThanTenLikes: false,
+      keywords: ''
+    };
+    var _currentPage = null;
+    var _pagination = {
+      index: 0,
+      hasNext: false,
+      hasPrev: false
+    };
 
     /**
      * public props
      */
-    _self.data = null;
     _self.ready = false;
-    _self.pagination = {
-      currentIndex: 0,
-      currentPage: []
-    };
 
     /**
      * set `resultsPerPage` option
@@ -83,27 +95,42 @@
       }
     } // end-setResultsPerPage
 
-    function getPage() {
-      var rpp = _opts.resultsPerPage;
-      var index = _self.pagination.currentIndex;
-      var current = _self.pagination.currentPage;
-      // set current
-      current = _self.data.slice(index, rpp);
-      // set index
-      index = current.length - 1;
-    } // end-getPage
+    function setPagination(data, dir) {
+      var rpp = _filterOpts.resultsPerPage;
+      var index = _pagination.index;
+      var currentIndex = index, nextIndex, prevIndex, nextPage, prevPage;
+      if (dir === 'next') {
+        currentIndex = index + rpp;
+      }
+      if (dir === 'prev') {
+        currentIndex = index - rpp;
+      }
+      nextIndex = currentIndex + rpp;
+      prevIndex = currentIndex - rpp;
+      // set pages
+      _currentPage = data.slice(currentIndex, currentIndex + rpp);
+      nextPage = data.slice(nextIndex, nextIndex + rpp);
+      prevPage = data.slice(prevIndex, currentIndex);
+      // set pagination
+      _pagination.hasNext = nextPage.length !== 0;
+      _pagination.hasPrev = prevPage.length !== 0;
+      _pagination.index = currentIndex;
+    } // end-setPagination
+
+    function setFilterOpts(opts) {
+      _filterOpts = _.assign({}, _filterOpts, opts);
+    } // end-setFilterOpts
 
     /**
      * filter the data
      *
-     * @param {arr} data
-     * @param {obj} options
+     * @param {}
      * @return {arr}
      * @api @private
      */
-    function filterData(opts) {
-      var newData = _self.data.concat();
-      if (opts.moreThanTenLikes) {
+    function filterData() {
+      var newData = _data.concat();
+      if (_filterOpts.moreThanTenLikes) {
         newData = _.filter(data, function (obj) {
           return parseInt(obj.likes) > 10;
         });
@@ -115,23 +142,38 @@
      * render the stored data
      * based on the given options
      *
-     * @param {obj} options
+     * @param {str} paginationDirection
      * @return {void}
      * @api @public
      */
-    function render(opts) {
-      var data = filterData(_self.data, opts);
+    function render(dir) {
       var $con = $('.' + _opts.containerClass);
-
-      if (data.length > 0) {
-        $.each(data, function (i, videoData) {
+      // set/update pagination data
+      setPagination(filterData(), dir);
+      // clear $con
+      $con.html('');
+      // render
+      if (_currentPage.length > 0) {
+        $.each(_currentPage, function (i, videoData) {
           $con.append(_opts.templateCreator(videoData));
         });
-        $con.append(opts.paginationBtn('left'), opts.paginationBtn('right'));
+        // render pagination btns
+        if (_pagination.hasNext && _pagination.hasPrev) {
+          $con.append(_opts.paginationBtnCreator('prev'), _opts.paginationBtnCreator('next'));
+        } else if (_pagination.hasNext && !_pagination.hasPrev) {
+          $con.append(_opts.paginationBtnCreator('next'));
+        } else if (!_pagination.hasNext && _pagination.hasPrev) {
+          $con.append(_opts.paginationBtnCreator('prev'));
+        }
+        // set pagination btns click event
+        $('.pagination-btn').on('click', function (e) {
+          e.preventDefault();
+          var dir = $(e.target).html();
+          render(dir);
+        });
       } else {
         $con.html('0 videos found.');
       }
-
       console.log('Success :', 'Data rendered.');
     }; // end-render
 
@@ -177,7 +219,7 @@
       })
       .done(function (res) {
         console.log('Success :', 'Data fetched.');
-        _self.data = mapData(JSON.parse(res).data);
+        _data = mapData(JSON.parse(res).data);
         console.log('Success :', 'Data parsed and stored.');
         _self.ready = true;
         console.log('Success :', 'Video Feed is ready.');
@@ -331,8 +373,8 @@
     },
     paginationBtn: function (dir) {
       return $('<a>', {
-        class: 'pagination-btn btn btn-primary btn-sm pull-' + dir
-      }).html(dir === 'right' ? 'next' : 'prev');
+        class: 'pagination-btn btn btn-primary btn-sm pull-' + (dir === 'next' ? 'right' : 'left')
+      }).html(dir);
     }
   }; // end-$templates
 
@@ -359,8 +401,11 @@
         userLikes: 'user.metadata.connections.likes.total'
       },
       // function that returns the jQuery
-      // element with the given data
+      // element created with the given data
       templateCreator: $templates.video,
+      // function that returns the pagination
+      // button jQuery elemen
+      paginationBtnCreator: $templates.paginationBtn,
       // class name of the container element
       // where the templates will be rendered
       containerClass: 'videos'
@@ -368,11 +413,7 @@
 
     // app's code
     function init() {
-      videoFeed.render({
-        moreThanTenLikes: false,
-        keywords: '',
-        paginationBtn: $templates.paginationBtn
-      });
+      videoFeed.render();
     };
 
     // wait for ready state
