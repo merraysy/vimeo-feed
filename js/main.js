@@ -166,18 +166,12 @@
         });
         // render pagination btns
         if (_pagination.hasNext && _pagination.hasPrev) {
-          $con.append(_opts.paginationBtnCreator('prev'), _opts.paginationBtnCreator('next'));
+          $con.append(_opts.paginationBtnCreator('prev', render), _opts.paginationBtnCreator('next', render));
         } else if (_pagination.hasNext && !_pagination.hasPrev) {
-          $con.append(_opts.paginationBtnCreator('next'));
+          $con.append(_opts.paginationBtnCreator('next', render));
         } else if (!_pagination.hasNext && _pagination.hasPrev) {
-          $con.append(_opts.paginationBtnCreator('prev'));
+          $con.append(_opts.paginationBtnCreator('prev', render));
         }
-        // set pagination btns click event
-        $('.pagination-btn').on('click', function (e) {
-          e.preventDefault();
-          var dir = $(e.target).html();
-          render(dir);
-        });
       } else {
         $con.html('0 videos found.');
       }
@@ -304,9 +298,20 @@
       var $desc = $('<p>').html(data.desc);
       function descBtn(name) {
         return $('<a>', {
-          class: 'show-' + name + ' btn btn-primary btn-xs',
+          class: 'show-' + name + ' btn btn-default btn-xs',
           href: '#'
-        }).html('show ' + name);
+        })
+          .html('show ' + name)
+          .on('click', function (e) {
+            e.preventDefault();
+            var $target = $(e.target);
+            var $parent = $target.parents('.video-desc');
+            if ($target.hasClass('show-more')) {
+              $parent.addClass('more');
+            } else {
+              $parent.removeClass('more');
+            }
+          });
       }
 
       /**
@@ -378,10 +383,16 @@
       // return the whole video elem
       return $con.append($userImg, $videoInfos);
     },
-    paginationBtn: function (dir) {
+    paginationBtn: function (dir, clickAction) {
       return $('<a>', {
-        class: 'pagination-btn btn btn-primary btn-sm pull-' + (dir === 'next' ? 'right' : 'left')
-      }).html(dir);
+        class: 'pagination-btn btn btn-default btn-sm pull-' + (dir === 'next' ? 'right' : 'left')
+      })
+        .html(dir)
+        .on('click', function (e) {
+          e.preventDefault();
+          clickAction(dir);
+          $('html, body').scrollTop(0);
+        });;
     }
   }; // end-$templates
 

@@ -73,29 +73,32 @@ a:focus:not(.btn) {
  * desc
  */
 .video .video-infos .video-desc {
+  margin-bottom: .5em;
+}
+.video .video-infos .video-desc p {
   height: 90px;
   position: relative;
   overflow: hidden;
   margin-bottom: .5em;
 }
-.video .video-infos .video-desc.short {
+.video .video-infos .video-desc.short p {
   height: auto;
 }
-.video .video-infos .video-desc.more {
+.video .video-infos .video-desc.more p {
   height: auto;
   overflow: inherit;
 }
-.video .video-infos .video-desc.short::before,
-.video .video-infos .video-desc.more::before,
+.video .video-infos .video-desc.short p::after,
+.video .video-infos .video-desc.more p::after,
 .video .video-infos .video-desc.short .show-more,
 .video .video-infos .video-desc.more .show-more,
 .video .video-infos .video-desc.short .btn {
   display: none;
 }
 .video .video-infos .video-desc.more .show-less {
-  display: block;
+  display: inline-block;
 }
-.video .video-infos .video-desc::before {
+.video .video-infos .video-desc p::after {
   content: '';
   display: block;
   position: absolute;
@@ -104,14 +107,6 @@ a:focus:not(.btn) {
   left: 0;
   bottom: 0;
   background: linear-gradient(to bottom, transparent, #fff);
-}
-.video .video-infos .video-desc .btn {
-  position: absolute;
-  left: 50%;
-  bottom: .25em;
-  -webkit-transform: translateX(-50%);
-  transform: translateX(-50%);
-  opacity: .3;
 }
 .video .video-infos .video-desc .btn:hover {
   opacity: 1;
@@ -123,9 +118,6 @@ a:focus:not(.btn) {
 /**
  * details
  */
-.video .video-infos .video-details {
-
-}
 .video .video-infos .video-details ul li {
   display: inline;
   margin-right: .5em;
