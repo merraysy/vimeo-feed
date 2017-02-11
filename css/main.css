@@ -38,6 +38,7 @@ a:focus:not(.btn) {
 .video .user-img {
   display: table-cell;
   vertical-align: top;
+  width: 50px;
 }
 
 /**

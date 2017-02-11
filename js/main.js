@@ -95,6 +95,137 @@
    * @type {Object}
    */
   var $elements = {
+    /**
+     * video element
+     *
+     * @param {obj} videoData
+     * @return {jQuery} videoElem
+     */
+    video: function (data) {
+      /**
+       * container
+       */
+      var $con = $('<div>', {
+        class: 'video'
+      });
+
+      /**
+       * user image
+       */
+      var $userImg = $('<div>', {
+        class: 'user-img'
+      }).append($('<a>', {
+        href: data.userUrl,
+        target: '_blank'
+      }).append($('<img>', {
+        class: 'img-rouded',
+        src: data.userImgUrl,
+        alt: data.userName
+      })));
+
+      /**
+       * user name
+       */
+      var $userName = $('<a>', {
+        href: data.userUrl,
+        target: '_blank'
+      }).append($('<strong>').html(data.userName));
+
+      /**
+       * video title
+       */
+      var $videoTitle = $('<a>', {
+        href: data.videoUrl,
+        target: '_blank'
+      }).append($('<h3>', {
+          class: 'title text-success'
+        }).html(data.videoTitle));
+
+      /**
+       * video desc
+       */
+      var $videoDesc = $('<p>').html(data.videoDesc);
+      function videoDescBtn(name) {
+        return $('<a>', {
+          class: 'show-' + name + ' btn btn-primary btn-xs',
+          href: '#'
+        }).html('show ' + name);
+      }
+
+      /**
+       * video detail item
+       */
+      function videoDetailItem(type) {
+        var color, html, icon;
+        switch (type) {
+          case 'views':
+            color = 'success';
+            html = data.videoViews;
+            icon = 'eye-open';
+            break;
+          case 'likes':
+            color = 'danger';
+            html = data.videoLikes;
+            icon = 'heart';
+            break;
+          case 'comments':
+            color = 'primary';
+            html = data.videoComments;
+            icon = 'comment';
+            break;
+          default:
+            color = 'default';
+        }
+        return $('<li>', {
+          class: 'text-' + color
+        })
+          .html(html)
+          .prepend($('<span>', {
+            class: 'icon glyphicon glyphicon-' + icon
+          }));
+      }
+
+      /**
+       * video infos
+       */
+      var $videoInfos = $('<div>', {
+        class: 'video-infos'
+      })
+        // user name
+        .append($('<div>', {
+          class: 'user-name'
+        }).append($userName))
+        // video title
+        .append($('<div>', {
+          class: 'video-title'
+        }).append($videoTitle))
+        // video desc
+        .append($('<div>', {
+          class: 'video-desc'
+        })
+          // video desc text
+          .append($videoDesc)
+          // video desc btns
+          .append(videoDescBtn('more'))
+          .append(videoDescBtn('less')))
+        // video details
+        .append($('<div>', {
+          class: 'video-details'
+        })
+          // video details list
+          .append($('<ul>', {
+            class: 'list-unstyled'
+          })
+            // video details list items
+            .append(videoDetailItem('views'))
+            .append(videoDetailItem('likes'))
+            .append(videoDetailItem('comments'))));
+
+      // return the whole video elem
+      return $con
+        .append($userImg)
+        .append($videoInfos);
+    }
   }; // end-$elements
 
   // init
@@ -104,5 +235,19 @@
     });
 
     window.videoFeed = videoFeed;
+
+    videoFeed.render([
+      $elements.video({
+        userName: 'username',
+        userUrl: 'userurl',
+        userImgUrl: 'userimgurl',
+        videoTitle: 'videotitle',
+        videoUrl: 'videourl',
+        videoDesc: 'videodesc',
+        videoViews: '1000',
+        videoLikes: '233',
+        videoComments: '23'
+      })
+    ], $('.videos'));
   });
 })(jQuery, _);
