@@ -11,7 +11,9 @@
      */
     var _opts = $.extend({}, {
       dataUrl: null,
-      dataMap: null
+      dataMap: null,
+      templateCreator: null,
+      containerClass: null
     }, opts);
 
     // check _opts
@@ -29,14 +31,24 @@
               throw new Error('Please configure the `dataMap`');
             }
             break;
+          case 'templateCreator':
+            if (!val) {
+              throw new Error('Please provide a `templateCreator`');
+            }
+            break;
+          case 'containerClass':
+            if (!val) {
+              throw new Error('Please specify a `containerClass`');
+            }
+            break;
           default:
             if (!val) {
               throw new Error('Please check the options');
             }
         }
-        console.log('Success :', 'Options are looking good.');
       }
     }
+    console.log('Success :', 'Options are looking good.');
 
     /**
      * private props
@@ -47,20 +59,22 @@
      * public props
      */
     _self.data = null;
+    _self.ready = false;
+
 
     /**
-     * render the given jQuery elems
-     * withing the given container
+     * render the stored data
+     * based on the given options
      *
-     * @param {arr} elements
-     * @param {jQuery} container
+     * @param {obj} options
      * @return {void}
      * @api @public
      */
-    function render($elems, $container) {
-      $.each($elems, function (i, elem) {
-        $container.append($(elem));
+    function render(opts) {
+      $.each(_self.data, function (i, videoData) {
+        $('.' + _opts.containerClass).append(_opts.templateCreator(videoData));
       });
+      console.log('Success :', 'Data rendered.');
     }; // end-render
 
     /**
@@ -103,9 +117,11 @@
         dataType: 'text'
       })
       .done(function (res) {
-        console.log('Success :', 'Data fetched successfully');
+        console.log('Success :', 'Data fetched.');
         _self.data = mapData(JSON.parse(res).data);
         console.log('Success :', 'Data parsed and stored.');
+        _self.ready = true;
+        console.log('Success :', 'Video Feed is ready.');
       })
       .fail(function (err) {
         console.log('Error :', 'Couln\'t fetch the data.');
@@ -122,10 +138,11 @@
   } // end-VideoFeed
 
   /**
-   * [$elements app's jQuery elements]
-   * @type {Object}
+   * app's jQuery templates
+   *
+   * @type {obj}
    */
-  var $elements = {
+  var $templates = {
     /**
      * element
      *
@@ -149,7 +166,7 @@
         href: data.userUrl,
         target: '_blank'
       }).append($('<img>', {
-        class: 'img-rouded',
+        class: 'img-rounded',
         src: data.userImgUrl,
         alt: data.userName
       })));
@@ -257,12 +274,13 @@
         .append($userImg)
         .append($videoInfos);
     }
-  }; // end-$elements
+  }; // end-$templates
 
   // init
   $(document).ready(function () {
+    // videoFeed object
     var videoFeed = new VideoFeed({
-      // url where to grap the data
+      // url to grap the data from
       dataUrl: '/data.json',
       // options to map the data
       // keep only what's needed.
@@ -278,21 +296,26 @@
         userName: 'user.name',
         userUrl: 'user.link',
         userImgUrl: 'user.pictures.sizes.1.link'
-      }
+      },
+      // function that returns the jQuery
+      // element with the given data
+      templateCreator: $templates.video,
+      // class name of the container element
+      // where the templates will be rendered
+      containerClass: 'videos'
     });
 
-    videoFeed.render([
-      $elements.video({
-        userName: 'username',
-        userUrl: 'userurl',
-        userImgUrl: 'userimgurl',
-        name: 'title',
-        url: 'url',
-        desc: 'desc',
-        plays: '1000',
-        likes: '233',
-        comments: '23'
-      })
-    ], $('.videos'));
+    // app's code
+    function init() {
+      videoFeed.render();
+    };
+
+    // wait for ready state
+    var waitForReadyStateInterval = setInterval(function () {
+      if (videoFeed.ready) {
+        clearInterval(waitForReadyStateInterval);
+        init();
+      }
+    }, 10);
   });
 })(jQuery, _);

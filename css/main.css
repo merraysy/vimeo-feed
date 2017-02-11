@@ -30,6 +30,10 @@ a:focus:not(.btn) {
 .video {
   display: table;
   width: 100%;
+  margin-bottom: 1em;
+}
+.video:last-child {
+  margin-bottom: 0;
 }
 
 /**
