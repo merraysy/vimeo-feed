@@ -392,7 +392,7 @@
           e.preventDefault();
           clickAction(dir);
           $('html, body').scrollTop(0);
-        });;
+        });
     }
   }; // end-$templates
 
