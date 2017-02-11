@@ -13,7 +13,8 @@
       dataUrl: null,
       dataMap: null,
       templateCreator: null,
-      containerClass: null
+      containerClass: null,
+      resultsPerPage: 10
     }, opts);
 
     // check _opts
@@ -48,6 +49,7 @@
         }
       }
     }
+
     console.log('Success :', 'Options are looking good.');
 
     /**
@@ -60,7 +62,54 @@
      */
     _self.data = null;
     _self.ready = false;
+    _self.pagination = {
+      currentIndex: 0,
+      currentPage: []
+    };
 
+    /**
+     * set `resultsPerPage` option
+     *
+     * @param {int} resultsPerPage
+     * @return {void}
+     * @api @public
+     */
+    function setResultsPerPage(number) {
+      var num = parseInt(number);
+      if (!Number.isNaN(num)) {
+        _opts.resultsPerPage = num;
+      } else {
+        throw new Error('`resultsPerPage` must be an integer.');
+      }
+    } // end-setResultsPerPage
+
+    function getPage() {
+      var rpp = _opts.resultsPerPage;
+      var index = _self.pagination.currentIndex;
+      var current = _self.pagination.currentPage;
+      // set current
+      current = _self.data.slice(index, rpp);
+      // set index
+      index = current.length - 1;
+    } // end-getPage
+
+    /**
+     * filter the data
+     *
+     * @param {arr} data
+     * @param {obj} options
+     * @return {arr}
+     * @api @private
+     */
+    function filterData(opts) {
+      var newData = _self.data.concat();
+      if (opts.moreThanTenLikes) {
+        newData = _.filter(data, function (obj) {
+          return parseInt(obj.likes) > 10;
+        });
+      }
+      return newData;
+    } // end-filterData
 
     /**
      * render the stored data
@@ -71,9 +120,18 @@
      * @api @public
      */
     function render(opts) {
-      $.each(_self.data, function (i, videoData) {
-        $('.' + _opts.containerClass).append(_opts.templateCreator(videoData));
-      });
+      var data = filterData(_self.data, opts);
+      var $con = $('.' + _opts.containerClass);
+
+      if (data.length > 0) {
+        $.each(data, function (i, videoData) {
+          $con.append(_opts.templateCreator(videoData));
+        });
+        $con.append(opts.paginationBtn('left'), opts.paginationBtn('right'));
+      } else {
+        $con.html('0 videos found.');
+      }
+
       console.log('Success :', 'Data rendered.');
     }; // end-render
 
@@ -97,6 +155,7 @@
               var numRe = /\d/g;
               for (var i = 0; i < list.length; i++) {
                 var k = numRe.test(list[i]) ? parseInt(list[i]) : list[i];
+                if (typeof ref === 'undefined') continue;
                 if (!ref) {
                   ref = video[k];
                 } else {
@@ -132,6 +191,7 @@
 
     // expose methods
     this.render = render;
+    this.setResultsPerPage = render;
 
     // init
     getData(opts.dataUrl);
@@ -167,7 +227,7 @@
         target: '_blank'
       }).append($('<img>', {
         class: 'img-rounded',
-        src: data.userImgUrl,
+        src: data.userImgUrl ? data.userImgUrl : 'https://i2.wp.com/i.vimeocdn.com/portrait/defaults-red_75x75.png',
         alt: data.userName
       })));
 
@@ -206,7 +266,7 @@
       function detailItem(type) {
         var color, html, icon;
         switch (type) {
-          case 'views':
+          case 'plays':
             color = 'success';
             html = data.plays;
             icon = 'eye-open';
@@ -249,13 +309,12 @@
         }).append($name))
         // desc
         .append($('<div>', {
-          class: 'video-desc'
+          class: 'video-desc' + (!data.desc || data.desc && data.desc.length <= 200 ? ' short' : '')
         })
           // desc text
           .append($desc)
           // desc btns
-          .append(descBtn('more'))
-          .append(descBtn('less')))
+          .append(descBtn('more'), descBtn('less')))
         // details
         .append($('<div>', {
           class: 'video-details'
@@ -265,14 +324,15 @@
             class: 'list-unstyled'
           })
             // details list items
-            .append(detailItem('views'))
-            .append(detailItem('likes'))
-            .append(detailItem('comments'))));
+            .append(data.plays ? detailItem('plays') : '', data.likes ? detailItem('likes') : '', data.comments ?  detailItem('comments') : '')));
 
       // return the whole video elem
-      return $con
-        .append($userImg)
-        .append($videoInfos);
+      return $con.append($userImg, $videoInfos);
+    },
+    paginationBtn: function (dir) {
+      return $('<a>', {
+        class: 'pagination-btn btn btn-primary btn-sm pull-' + dir
+      }).html(dir === 'right' ? 'next' : 'prev');
     }
   }; // end-$templates
 
@@ -295,7 +355,8 @@
         comments: 'metadata.connections.comments.total',
         userName: 'user.name',
         userUrl: 'user.link',
-        userImgUrl: 'user.pictures.sizes.1.link'
+        userImgUrl: 'user.pictures.sizes.1.link',
+        userLikes: 'user.metadata.connections.likes.total'
       },
       // function that returns the jQuery
       // element with the given data
@@ -307,7 +368,11 @@
 
     // app's code
     function init() {
-      videoFeed.render();
+      videoFeed.render({
+        moreThanTenLikes: false,
+        keywords: '',
+        paginationBtn: $templates.paginationBtn
+      });
     };
 
     // wait for ready state

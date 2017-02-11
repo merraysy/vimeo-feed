@@ -32,9 +32,6 @@ a:focus:not(.btn) {
   width: 100%;
   margin-bottom: 1em;
 }
-.video:last-child {
-  margin-bottom: 0;
-}
 
 /**
  * user img
@@ -81,12 +78,18 @@ a:focus:not(.btn) {
   overflow: hidden;
   margin-bottom: .5em;
 }
+.video .video-infos .video-desc.short {
+  height: auto;
+}
 .video .video-infos .video-desc.more {
   height: auto;
   overflow: inherit;
 }
+.video .video-infos .video-desc.short::before,
 .video .video-infos .video-desc.more::before,
-.video .video-infos .video-desc.more .show-more {
+.video .video-infos .video-desc.short .show-more,
+.video .video-infos .video-desc.more .show-more,
+.video .video-infos .video-desc.short .btn {
   display: none;
 }
 .video .video-infos .video-desc.more .show-less {
@@ -133,4 +136,11 @@ a:focus:not(.btn) {
 .video .video-infos .video-details ul li .icon {
   margin-right: .5rem;
   font-size: .8em;
+}
+
+/**
+ * pagination btns
+ */
+.pagination-btn {
+  margin-bottom: 1em;
 }
