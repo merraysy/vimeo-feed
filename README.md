@@ -1,5 +1,5 @@
 # Vimeo Feed
-An old school code that displays data from vimeo's api into a feed like twitter's.
+An old school code that consumes Vimeo's api to list videos in a Twitter like feed.
 
 Created without :coffee: by **Mohammed Erraysy**
 
